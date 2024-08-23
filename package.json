@@ -68,7 +68,8 @@
     "security-audit:prod": "npm-audit-ci-wrapper -p -t low",
     "security-audit:all": "npm-audit-ci-wrapper -t moderate",
     "serve-static": "ws -d dist/ --hostname 0.0.0.0 -p 3002",
-    "start": "npm-run-all --parallel serve-static open-static"
+    "start": "npm-run-all --parallel serve-static open-static",
+    "deploy": "npm run build && gh-pages -d dist"
   },
   "dependencies": {
     "@babel/runtime-corejs3": "^7.24.7",
