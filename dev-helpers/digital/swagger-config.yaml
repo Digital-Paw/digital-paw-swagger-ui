@@ -54,7 +54,7 @@ components:
           type: string
           format: password
           example: "password123"
-        repeat-password:
+        repeatPassword:
           type: string
           format: password
           example: "password123"
@@ -91,6 +91,25 @@ components:
           type: string
           description: The verification code sent to the user's phone.
           example: "123456"
+    EmailCode:
+      type: object
+      required:
+        - code
+        - password
+        - repeatPassword
+      properties:
+        code:
+          type: string
+          description: The verification code sent to the user's email.
+          example: "123456"
+        password:
+          type: string
+          format: password
+          example: "password123"
+        repeatPassword:
+          type: string
+          format: password
+          example: "password123"
     PhoneSend:
       type: object
       required:
@@ -117,6 +136,95 @@ components:
           type: string
           description: Refresh token.
           example: "def50200bb..."
+    PetType:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: The unique identifier for the pet type.
+          example: 1
+        name:
+          type: string
+          description: The name of the pet type.
+          example: "Dog"
+        breeds:
+          type: array
+          description: A list of breeds associated with the pet type.
+          items:
+            $ref: '#/components/schemas/PetBreed'
+    PetBreed:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: The unique identifier for the pet breed.
+          example: 101
+        name:
+          type: string
+          description: The name of the pet breed.
+          example: "Golden Retriever"
+    PetRequest:
+      type: object
+      required:
+        - name
+        - petBreedId
+      properties:
+        name:
+          type: string
+          description: The name of the pet.
+        alias:
+          type: string
+          description: An optional alias for the pet.
+        petBreedId:
+          type: integer
+          description: The identifier for the pet breed.
+        birthDate:
+          type: string
+          format: date
+          description: An optional birth date of the pet (YYYY-MM-DD).
+        gender:
+          type: string
+          description: An optional gender of the pet.
+          enum:
+            - male
+            - female
+            - unknown
+    PetResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: The unique identifier for the pet
+          example: 101
+        name:
+          type: string
+          description: The name of the pet.
+        alias:
+          type: string
+          description: An optional alias for the pet.
+        breed:
+          type: string
+          description: Breed for pet
+        birthDate:
+          type: string
+          format: date
+          description: An optional birth date of the pet (YYYY-MM-DD).
+        gender:
+          type: string
+          description: An optional gender of the pet.
+          enum:
+            - male
+            - female
+            - unknown
+    PasswordRecover:
+      type: object
+      required:
+        - email
+      properties:
+        email:
+          type: string
+          format: email
+          description: The email address associated with the user account. 
     Error:
       type: object
       required:
@@ -272,6 +380,109 @@ paths:
       responses:
         200:
           description: Code sent successfully. Empty response.
+          content: {}
+        400:
+          description: Invalid request. The verification code is incorrect or missing.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        500:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /pet-parent/pet-type:
+    get:
+      summary: Get Pet Types and Breeds
+      description: Retrieves a list of pet types, each with its corresponding breeds.
+      responses:
+        200:
+          description: A list of pet types with their respective breeds.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PetType'
+        500:
+          description: Server error. An unexpected error occurred while processing the request.
+  /pet-parent/pet:
+    post:
+      summary: Create a new pet
+      description: This endpoint allows the creation of a new pet under a pet parent.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PetRequest'
+      responses:
+        200:
+          description: Pet created successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PetResponse'
+        404:
+          description: Error create pet
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        500:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /pet-parent/pet/{petId}:
+    parameters:
+      - name: petId
+        description: The unique identifier of the pet.
+        in: path
+        required: true
+        schema:
+          type: integer
+    get:
+      summary: Retrieve pet details
+      description: This endpoint retrieves the details of a pet by its ID.
+      responses:
+        200:
+          description: A pet object containing detailed information about the pet.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PetResponse'
+        404:
+          description: Pet not found.
+  /pet-parent/account/password-recover:
+    post:
+      summary: Request password recovery
+      description: This endpoint allows a user to request a password recovery link by providing their email address.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PasswordRecover'
+      responses:
+        '204':
+          description: No Content - Password recovery link sent successfully.
+  /pet-parent/recover-password:
+    post:
+      summary: Email verified
+      description: Verifies a email for recover password
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EmailCode'
+      responses:
+        200:
+          description: Verification successful. Password recover.
           content: {}
         400:
           description: Invalid request. The verification code is incorrect or missing.
